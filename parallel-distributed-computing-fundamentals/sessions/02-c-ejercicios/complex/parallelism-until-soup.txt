@@ -1,0 +1,3 @@
+El paralelismo permite ejecutar varias tareas al mismo tiempo, divide el trabajo en partes, aprovecha los recursos del sistema y mejora el rendimiento. La concurrencia organiza múltiples procesos, gestiona el acceso a los datos, evita conflictos y mantiene el control. Ambos conceptos trabajan juntos, se complementan y logran mayor eficiencia.
+
+En un programa con paralelismo, varias operaciones se ejecutan simultáneamente, lo que reduce tiempos y acelera el procesamiento de datos. En un sistema con concurrencia, diferentes tareas comparten recursos de forma ordenada y segura. Paralelismo y concurrencia buscan aprovechar mejor el tiempo, optimizar los recursos y ofrecer mayores oportunidades de ejecución.

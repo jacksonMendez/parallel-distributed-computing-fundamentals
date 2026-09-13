@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C para Computación Paralela — De Cero a Intermedio</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --accent3: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --green: #10b981;
+    --red: #ef4444;
+    --code-bg: #0d1117;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid rgba(0,229,255,0.15);
+    position: relative;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(0,229,255,0.1);
+    border: 1px solid rgba(0,229,255,0.3);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 600px;
+    margin-bottom: 32px;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(0,229,255,0.1);
+    padding: 14px 0;
+  }
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .nav-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-right: 12px;
+    text-transform: uppercase;
+  }
+  .nav-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    background: rgba(0,229,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── MAIN CONTENT ── */
+  main { padding: 60px 0; }
+
+  /* ── SECTION ── */
+  .section {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .section-number {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    padding: 4px 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .section-header h2 {
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 700;
+    color: #fff;
+  }
+
+  /* ── LESSON BLOCKS ── */
+  .lesson {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .lesson::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    border-radius: 12px 0 0 12px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+  }
+  .lesson h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .lesson h3 .icon {
+    font-size: 1.1rem;
+  }
+  .lesson p, .lesson li {
+    color: #94a3b8;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+  }
+  .lesson ul, .lesson ol {
+    padding-left: 22px;
+    margin-bottom: 12px;
+  }
+  .lesson li { margin-bottom: 6px; }
+
+  /* ── CODE BLOCKS ── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 18px 0;
+    position: relative;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .code-lang {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .code-dots { display: flex; gap: 6px; }
+  .code-dots span {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .code-dots span:nth-child(1) { background: #ef4444; }
+  .code-dots span:nth-child(2) { background: #f59e0b; }
+  .code-dots span:nth-child(3) { background: #10b981; }
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #e2e8f0;
+  }
+  .kw { color: #c792ea; }
+  .fn { color: #82aaff; }
+  .str { color: #c3e88d; }
+  .cm { color: #546e7a; font-style: italic; }
+  .num { color: #f78c6c; }
+  .type { color: #ffcb6b; }
+  .pp { color: #89ddff; }
+  .op { color: #89ddff; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 16px 0;
+    border-left: 3px solid;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  .callout.info {
+    background: rgba(0,229,255,0.06);
+    border-color: var(--accent);
+    color: #a5f3fc;
+  }
+  .callout.warning {
+    background: rgba(245,158,11,0.08);
+    border-color: var(--accent3);
+    color: #fcd34d;
+  }
+  .callout.danger {
+    background: rgba(239,68,68,0.08);
+    border-color: var(--red);
+    color: #fca5a5;
+  }
+  .callout.success {
+    background: rgba(16,185,129,0.08);
+    border-color: var(--green);
+    color: #6ee7b7;
+  }
+  .callout strong { display: block; margin-bottom: 4px; font-size: 0.82rem; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ── ANALOGY BOX ── */
+  .analogy {
+    background: rgba(124,58,237,0.08);
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 16px 0;
+    color: #c4b5fd;
+    font-size: 0.92rem;
+  }
+  .analogy strong { color: var(--accent2); display: block; margin-bottom: 6px; font-size: 0.82rem; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ── MEMORY DIAGRAM ── */
+  .memory-diag {
+    display: flex;
+    gap: 0;
+    margin: 20px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    overflow-x: auto;
+  }
+  .mem-cell {
+    min-width: 60px;
+    border: 1px solid rgba(255,255,255,0.15);
+    text-align: center;
+    padding: 8px 4px;
+    position: relative;
+  }
+  .mem-cell.highlight { background: rgba(0,229,255,0.12); border-color: var(--accent); }
+  .mem-cell.accent2 { background: rgba(124,58,237,0.12); border-color: var(--accent2); }
+  .mem-addr { color: var(--muted); font-size: 10px; display: block; margin-top: 4px; }
+  .mem-val { color: var(--accent); font-weight: 700; font-size: 14px; }
+  .mem-label { color: var(--accent3); font-size: 10px; display: block; margin-bottom: 4px; }
+
+  /* ── COMPARISON TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin: 16px 0;
+  }
+  th {
+    background: rgba(0,229,255,0.08);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0,229,255,0.2);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #94a3b8;
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+  .prog-step {
+    flex: 1;
+    min-width: 80px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .prog-step.done { background: var(--accent); }
+  .prog-step.current { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
+  /* ── INLINE CODE ── */
+  code {
+    font-family: 'Space Mono', monospace;
+    background: rgba(0,229,255,0.08);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+
+  /* ── CHAPTER OVERVIEW ── */
+  .chapter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .chapter-card {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 22px;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .chapter-card:hover {
+    border-color: rgba(0,229,255,0.3);
+    transform: translateY(-2px);
+    background: var(--surface2);
+  }
+  .chapter-card .num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .chapter-card h4 { font-size: 1rem; color: #fff; margin-bottom: 6px; }
+  .chapter-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+  /* ── FINAL SECTION ── */
+  .roadmap {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding-left: 32px;
+  }
+  .roadmap::before {
+    content: '';
+    position: absolute;
+    left: 10px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2), transparent);
+  }
+  .rm-item {
+    position: relative;
+    padding: 0 0 28px 20px;
+  }
+  .rm-item::before {
+    content: '';
+    position: absolute;
+    left: -22px; top: 6px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .rm-item.future::before { background: var(--muted); box-shadow: none; }
+  .rm-item h4 { color: #fff; font-size: 1rem; margin-bottom: 4px; }
+  .rm-item p { color: var(--muted); font-size: 0.88rem; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .lesson { padding: 20px; }
+    .nav-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="container">
+<div class="hero">
+  <div class="hero-badge">//<i>Devoleped by Prof. Alejandro Jaimes</i></div>
+  <h1>C para<br>Computación Paralela</h1>
+  <p>Tutorial desarrollado para mis queridos estudiantes de computacion paralela. Paso a paso, con analogías reales.</p>
+  <div class="container">
+    <a href="https://github.com/Doc-UP-AlejandroJaimes/parallel-distributed-computing-fundamentals" target="_blank" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+        padding: 10px 20px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        color: #e2e8f0;
+        text-decoration: none;
+        font-family: 'Space Mono', monospace;
+        font-size: 13px;
+        transition: all 0.2s;
+    " onmouseover="this.style.borderColor='#00e5ff'; this.style.color='#00e5ff';"
+      onmouseout="this.style.borderColor='rgba(255,255,255,0.15)'; this.style.color='#e2e8f0';">
+      <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+                .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+                -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+                .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+                .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+                0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      Repositorio del Curso — Computación Paralela
+    </a>
+  <table style="width:100%; border-collapse:collapse; margin-top:20px; font-family:'Space Mono',monospace; font-size:13px;">
+  <thead>
+    <tr style="background:rgba(0,229,255,0.08); border-bottom:1px solid rgba(0,229,255,0.2);">
+      <th style="padding:10px 14px; color:#00e5ff; text-align:left; letter-spacing:1px; text-transform:uppercase;">Módulo</th>
+      <th style="padding:10px 14px; color:#00e5ff; text-align:left; letter-spacing:1px; text-transform:uppercase;">Tema</th>
+      <th style="padding:10px 14px; color:#00e5ff; text-align:left; letter-spacing:1px; text-transform:uppercase;">Dedicación estimada</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:10px 14px; color:#64748b;">00</td>
+      <td style="padding:10px 14px; color:#94a3b8;">Introducción</td>
+      <td style="padding:10px 14px; color:#94a3b8;">15 min</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:10px 14px; color:#64748b;">01</td>
+      <td style="padding:10px 14px; color:#94a3b8;">Fundamentos de C</td>
+      <td style="padding:10px 14px; color:#94a3b8;">2 – 3 horas</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:10px 14px; color:#64748b;">02</td>
+      <td style="padding:10px 14px; color:#94a3b8;">Cómo funciona la memoria</td>
+      <td style="padding:10px 14px; color:#94a3b8;">2 – 3 horas</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:10px 14px; color:#64748b;">03</td>
+      <td style="padding:10px 14px; color:#94a3b8;">Punteros</td>
+      <td style="padding:10px 14px; color:#f59e0b;">3 – 5 horas ⚠️</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:10px 14px; color:#64748b;">04</td>
+      <td style="padding:10px 14px; color:#94a3b8;">Arrays y Strings</td>
+      <td style="padding:10px 14px; color:#94a3b8;">2 – 3 horas</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:10px 14px; color:#64748b;">05</td>
+      <td style="padding:10px 14px; color:#94a3b8;">Funciones avanzadas</td>
+      <td style="padding:10px 14px; color:#94a3b8;">2 – 3 horas</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:10px 14px; color:#64748b;">06</td>
+      <td style="padding:10px 14px; color:#94a3b8;">Structs</td>
+      <td style="padding:10px 14px; color:#94a3b8;">1 – 2 horas</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:10px 14px; color:#64748b;">07</td>
+      <td style="padding:10px 14px; color:#94a3b8;">Puente a Computación Paralela</td>
+      <td style="padding:10px 14px; color:#94a3b8;">2 – 3 horas</td>
+    </tr>
+    <tr style="background:rgba(0,229,255,0.04);">
+      <td style="padding:10px 14px; color:#00e5ff; font-weight:700;" colspan="2">Total</td>
+      <td style="padding:10px 14px; color:#00e5ff; font-weight:700;">15 – 22 horas</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="color:#64748b; font-size:0.82rem; margin-top:12px; font-family:'Space Mono',monospace;">
+  <b>Módulo más difícil</b> — se recomienda volver varias veces.<br>
+  <b>Ritmo sugerido</b>: 2 h/día → 1–1.5 semanas · 4–5 h/semana → 3–4 semanas.
+</p>
+</div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <span class="nav-label">Módulo</span>
+    <button class="nav-btn active" onclick="show(0)">0 · Intro</button>
+    <button class="nav-btn" onclick="show(1)">1 · Fundamentos</button>
+    <button class="nav-btn" onclick="show(2)">2 · Memoria</button>
+    <button class="nav-btn" onclick="show(3)">3 · Punteros</button>
+    <button class="nav-btn" onclick="show(4)">4 · Arrays & Strings</button>
+    <button class="nav-btn" onclick="show(5)">5 · Funciones</button>
+    <button class="nav-btn" onclick="show(6)">6 · Structs</button>
+    <button class="nav-btn" onclick="show(7)">7 → Paralela</button>
+  </div>
+</nav>
+
+<main>
+<div class="container">
+
+<!-- SECCIÓN 0: INTRO -->
+<div class="section active" id="s0">
+  <div class="section-header">
+    <span class="section-number">MÓDULO 00</span>
+    <h2>¿Por qué C?</h2>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🎯</span>La respuesta corta</h3>
+    <p>La mayoría de las bibliotecas de computación paralela (<strong>OpenMP, MPI, CUDA, pthreads</strong>) están escritas en C o tienen su API principal en C. Para usarlas de verdad —sin capas de abstracción que te escondan lo que pasa— necesitas entender C.</p>
+    <p>C es el lenguaje que habla directamente con el hardware. En paralela, eso importa: cuando tienes 64 núcleos y quieres que cada uno haga exactamente lo que tú dices, no puedes permitirte magia invisible.</p>
+  </div>
+
+  <div class="chapter-grid">
+    <div class="chapter-card" onclick="show(1)">
+      <div class="num">01 ·</div>
+      <h4>Fundamentos de C</h4>
+      <p>Variables, tipos, operadores, condicionales, bucles. El esqueleto del lenguaje.</p>
+    </div>
+    <div class="chapter-card" onclick="show(2)">
+      <div class="num">02 ·</div>
+      <h4>Cómo funciona la memoria</h4>
+      <p>Stack, heap, direcciones. Sin esto, los punteros no tienen sentido.</p>
+    </div>
+    <div class="chapter-card" onclick="show(3)">
+      <div class="num">03 ·</div>
+      <h4>Punteros</h4>
+      <p>El concepto más importante (y más malentendido) de C. Imprescindible para paralela.</p>
+    </div>
+    <div class="chapter-card" onclick="show(4)">
+      <div class="num">04 ·</div>
+      <h4>Arrays y Strings</h4>
+      <p>Cómo C guarda colecciones. La base para dividir trabajo entre hilos.</p>
+    </div>
+    <div class="chapter-card" onclick="show(5)">
+      <div class="num">05 ·</div>
+      <h4>Funciones avanzadas</h4>
+      <p>Paso por valor vs referencia. Funciones que reciben funciones. Esencial para pthreads.</p>
+    </div>
+    <div class="chapter-card" onclick="show(6)">
+      <div class="num">06 ·</div>
+      <h4>Structs</h4>
+      <p>Agrupa datos. Cada hilo necesita su propio paquete de argumentos.</p>
+    </div>
+    <div class="chapter-card" onclick="show(7)">
+      <div class="num">07 ·</div>
+      <h4>Puente a Paralela</h4>
+      <p>Cómo todo lo anterior se conecta con OpenMP, MPI y pthreads.</p>
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">⚙️</span>Herramientas que vas a necesitar</h3>
+    <p>Para practicar solo necesitas <strong>gcc</strong> (el compilador de C). En Linux/Mac ya viene o se instala con un comando. En Windows puedes usar WSL o MinGW.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">bash · compilar y ejecutar</span>
+      </div>
+      <pre><span class="cm"># Compilar un archivo llamado hola.c</span>
+gcc hola.c -o hola
+
+<span class="cm"># Ejecutarlo</span>
+./hola
+
+<span class="cm"># Con OpenMP (lo usaremos al final)</span>
+gcc -fopenmp programa.c -o programa</pre>
+    </div>
+    <div class="callout info">
+      <strong>Tip</strong>
+      Puedes practicar online en <strong>godbolt.org</strong> o <strong>onlinegdb.com</strong> sin instalar nada.
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 1: FUNDAMENTOS -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="section-number">MÓDULO 01</span>
+    <h2>Fundamentos de C</h2>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">📝</span>Estructura de un programa en C</h3>
+    <p>Todo programa en C tiene esta forma básica. Vamos línea por línea:</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · hola.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>   <span class="cm">// Importa funciones de entrada/salida</span>
+
+<span class="type">int</span> <span class="fn">main</span>() {            <span class="cm">// Punto de entrada del programa</span>
+    <span class="fn">printf</span>(<span class="str">"Hola mundo\n"</span>);  <span class="cm">// Imprime en pantalla</span>
+    <span class="kw">return</span> <span class="num">0</span>;             <span class="cm">// 0 = éxito, cualquier otro = error</span>
+}</pre>
+    </div>
+    <div class="analogy">
+      <strong>Analogía</strong>
+      <code>#include</code> es como "importar una librería" en Python. <code>main()</code> es la función principal: cuando ejecutas el programa, C empieza exactamente aquí.
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🔢</span>Tipos de datos básicos</h3>
+    <p>En C debes declarar <em>explícitamente</em> qué tipo de dato va a guardar cada variable. No hay inferencia automática.</p>
+    <table>
+      <tr><th>Tipo</th><th>Tamaño</th><th>Qué guarda</th><th>Ejemplo</th></tr>
+      <tr><td><code>int</code></td><td>4 bytes</td><td>Enteros (sin decimales)</td><td><code>int edad = 25;</code></td></tr>
+      <tr><td><code>float</code></td><td>4 bytes</td><td>Decimales (baja precisión)</td><td><code>float pi = 3.14f;</code></td></tr>
+      <tr><td><code>double</code></td><td>8 bytes</td><td>Decimales (alta precisión)</td><td><code>double e = 2.71828;</code></td></tr>
+      <tr><td><code>char</code></td><td>1 byte</td><td>Un carácter</td><td><code>char letra = 'A';</code></td></tr>
+      <tr><td><code>long</code></td><td>8 bytes</td><td>Enteros grandes</td><td><code>long pop = 8000000000L;</code></td></tr>
+    </table>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · variables.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">int</span>    hilos   = <span class="num">8</span>;
+    <span class="type">double</span> tiempo  = <span class="num">3.14159</span>;
+    <span class="type">char</span>   inicial = <span class="str">'C'</span>;
+
+    <span class="cm">// %d = int, %f = float/double, %c = char</span>
+    <span class="fn">printf</span>(<span class="str">"Hilos: %d\n"</span>, hilos);
+    <span class="fn">printf</span>(<span class="str">"Tiempo: %.2f segundos\n"</span>, tiempo);
+    <span class="fn">printf</span>(<span class="str">"Lenguaje: %c\n"</span>, inicial);
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div class="callout warning">
+      <strong>Importante</strong>
+      En C las variables no se inicializan solas. Si escribes <code>int x;</code> sin asignarle valor, <code>x</code> contiene "basura" (lo que había en esa posición de memoria antes).
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🔀</span>Condicionales</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C</span>
+      </div>
+      <pre><span class="type">int</span> nucleos = <span class="num">16</span>;
+
+<span class="kw">if</span> (nucleos <span class="op">>=</span> <span class="num">8</span>) {
+    <span class="fn">printf</span>(<span class="str">"Podemos paralelizar bien\n"</span>);
+} <span class="kw">else if</span> (nucleos <span class="op">>=</span> <span class="num">4</span>) {
+    <span class="fn">printf</span>(<span class="str">"Paralelismo moderado\n"</span>);
+} <span class="kw">else</span> {
+    <span class="fn">printf</span>(<span class="str">"Mejor secuencial\n"</span>);
+}</pre>
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🔁</span>Bucles — los que más usarás</h3>
+    <p>En computación paralela el 80% del trabajo consiste en paralelizar bucles <code>for</code>. Hay que entenderlos muy bien.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · bucles.c</span>
+      </div>
+      <pre><span class="cm">// Forma clásica: init; condición; incremento</span>
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i <span class="op">&lt;</span> <span class="num">10</span>; i++) {
+    <span class="fn">printf</span>(<span class="str">"Iteración %d\n"</span>, i);
+}
+
+<span class="cm">// Suma de un arreglo — típico en paralela</span>
+<span class="type">int</span> datos[<span class="num">6</span>] = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>, <span class="num">60</span>};
+<span class="type">int</span> suma = <span class="num">0</span>;
+
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i <span class="op">&lt;</span> <span class="num">6</span>; i++) {
+    suma <span class="op">+=</span> datos[i];   <span class="cm">// suma = suma + datos[i]</span>
+}
+<span class="fn">printf</span>(<span class="str">"Suma: %d\n"</span>, suma);  <span class="cm">// 210</span>
+
+<span class="cm">// while — cuando no sabes cuántas veces</span>
+<span class="type">int</span> n = <span class="num">1</span>;
+<span class="kw">while</span> (n <span class="op">&lt;</span> <span class="num">100</span>) {
+    n <span class="op">*=</span> <span class="num">2</span>;
+}</pre>
+    </div>
+    <div class="analogy">
+      <strong>Por qué importa en paralela</strong>
+      Un bucle for que procesa 1,000,000 elementos puede dividirse: hilo 0 procesa [0..249999], hilo 1 procesa [250000..499999], etc. Eso es paralelismo de datos, el tipo más común. Cuando llegues a OpenMP vas a ver que esto se logra con ¡una sola línea extra!
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">⚡</span>Operadores que debes conocer</h3>
+    <table>
+      <tr><th>Operador</th><th>Significado</th><th>Ejemplo</th></tr>
+      <tr><td><code>+  -  *  /</code></td><td>Aritmética básica</td><td><code>x = a + b;</code></td></tr>
+      <tr><td><code>%</code></td><td>Módulo (resto)</td><td><code>5 % 2 == 1</code></td></tr>
+      <tr><td><code>++  --</code></td><td>Incrementar / decrementar</td><td><code>i++</code> (i = i+1)</td></tr>
+      <tr><td><code>==  !=</code></td><td>Igual / distinto</td><td><code>if (x == 5)</code></td></tr>
+      <tr><td><code>&amp;&amp;  ||  !</code></td><td>AND, OR, NOT lógico</td><td><code>a &amp;&amp; b</code></td></tr>
+      <tr><td><code>&amp;  |  ^  ~  &lt;&lt;  &gt;&gt;</code></td><td>Operadores bit a bit</td><td><code>x &lt;&lt; 1</code> (x*2)</td></tr>
+    </table>
+    <div class="callout warning">
+      <strong>Trampa clásica</strong>
+      <code>=</code> es asignación. <code>==</code> es comparación. Escribir <code>if (x = 5)</code> asigna 5 a x y siempre es verdadero. Este bug es muy común.
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 2: MEMORIA -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="section-number">MÓDULO 02</span>
+    <h2>Cómo funciona la memoria</h2>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🧠</span>La memoria RAM como una calle de casas</h3>
+    <p>Imagina la memoria como una calle muy larga donde cada "casa" (celda) tiene:</p>
+    <ul>
+      <li>Una <strong>dirección</strong> única (número de casa) — se llama <em>address</em></li>
+      <li>Un <strong>valor</strong> guardado adentro</li>
+    </ul>
+    <p>Cuando declaras <code>int x = 42;</code>, el compilador busca 4 casas vacías contiguas, anota que se llaman "x", y guarda el número 42 ahí.</p>
+    <div class="memory-diag">
+      <div class="mem-cell">
+        <span class="mem-label">···</span>
+        <span class="mem-val">???</span>
+        <span class="mem-addr">0x100</span>
+      </div>
+      <div class="mem-cell highlight">
+        <span class="mem-label">x</span>
+        <span class="mem-val">42</span>
+        <span class="mem-addr">0x104</span>
+      </div>
+      <div class="mem-cell accent2">
+        <span class="mem-label">y</span>
+        <span class="mem-val">7</span>
+        <span class="mem-addr">0x108</span>
+      </div>
+      <div class="mem-cell">
+        <span class="mem-label">···</span>
+        <span class="mem-val">???</span>
+        <span class="mem-addr">0x10C</span>
+      </div>
+    </div>
+    <p style="font-size:0.85rem;color:var(--muted)">Representación simplificada. Las direcciones reales son hexadecimales.</p>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">📦</span>Stack vs Heap — los dos almacenes de C</h3>
+    <p>C tiene dos zonas de memoria con reglas muy distintas:</p>
+    <table>
+      <tr><th></th><th>Stack (pila)</th><th>Heap (montón)</th></tr>
+      <tr><td><strong>Qué va ahí</strong></td><td>Variables locales, argumentos de funciones</td><td>Memoria pedida con <code>malloc()</code></td></tr>
+      <tr><td><strong>Quién la gestiona</strong></td><td>Automático (el compilador)</td><td>Tú (manual)</td></tr>
+      <tr><td><strong>Cuándo se libera</strong></td><td>Al salir de la función</td><td>Cuando llamas <code>free()</code></td></tr>
+      <tr><td><strong>Tamaño</strong></td><td>Limitado (~1-8 MB)</td><td>Casi ilimitado (GBs)</td></tr>
+      <tr><td><strong>Velocidad</strong></td><td>Muy rápido</td><td>Más lento</td></tr>
+    </table>
+    <div class="analogy">
+      <strong>Analogía</strong>
+      El <strong>Stack</strong> es tu escritorio: pones cosas mientras trabajas, y al terminar de trabajar lo limpias solo. El <strong>Heap</strong> es una bodega enorme: reservas espacio tú mismo, y también tienes que devolverlo tú. Si no lo haces, se acumula basura (<em>memory leak</em>).
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · stack_heap.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;stdlib.h&gt;</span>  <span class="cm">// Para malloc y free</span>
+
+<span class="type">void</span> <span class="fn">ejemplo_stack</span>() {
+    <span class="type">int</span> x = <span class="num">10</span>;  <span class="cm">// Stack: se crea aquí, muere al salir de la función</span>
+    <span class="fn">printf</span>(<span class="str">"Stack: %d\n"</span>, x);
+}  <span class="cm">// ← x desaparece aquí automáticamente</span>
+
+<span class="type">void</span> <span class="fn">ejemplo_heap</span>() {
+    <span class="cm">// Pedimos memoria para 1 entero en el heap</span>
+    <span class="type">int</span> <span class="op">*</span>p = (<span class="type">int</span><span class="op">*</span>) <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="type">int</span>));
+
+    <span class="kw">if</span> (p == <span class="num">NULL</span>) {  <span class="cm">// Siempre verificar que malloc no falló</span>
+        <span class="fn">printf</span>(<span class="str">"Error: sin memoria\n"</span>);
+        <span class="kw">return</span>;
+    }
+
+    <span class="op">*</span>p = <span class="num">42</span>;  <span class="cm">// Guardamos 42 en esa memoria</span>
+    <span class="fn">printf</span>(<span class="str">"Heap: %d\n"</span>, <span class="op">*</span>p);
+
+    <span class="fn">free</span>(p);   <span class="cm">// ← Obligatorio. Sin esto, memory leak.</span>
+}
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="fn">ejemplo_stack</span>();
+    <span class="fn">ejemplo_heap</span>();
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div class="callout danger">
+      <strong>Memory Leak — el enemigo silencioso</strong>
+      En programas paralelos que corren horas, un leak de 1MB por iteración puede tumbar el servidor. Cada <code>malloc()</code> debe tener su <code>free()</code>.
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">📐</span>sizeof — ¿cuánto espacio ocupa?</h3>
+    <p><code>sizeof</code> te dice cuántos bytes ocupa un tipo o variable. Lo necesitarás constantemente con <code>malloc</code>.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C</span>
+      </div>
+      <pre><span class="fn">printf</span>(<span class="str">"int:    %zu bytes\n"</span>, <span class="kw">sizeof</span>(<span class="type">int</span>));    <span class="cm">// 4</span>
+<span class="fn">printf</span>(<span class="str">"double: %zu bytes\n"</span>, <span class="kw">sizeof</span>(<span class="type">double</span>)); <span class="cm">// 8</span>
+<span class="fn">printf</span>(<span class="str">"char:   %zu bytes\n"</span>, <span class="kw">sizeof</span>(<span class="type">char</span>));   <span class="cm">// 1</span>
+
+<span class="cm">// Pedir memoria para 1000 doubles</span>
+<span class="type">double</span> <span class="op">*</span>vector = (<span class="type">double</span><span class="op">*</span>) <span class="fn">malloc</span>(<span class="num">1000</span> <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">double</span>));</pre>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 3: PUNTEROS -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="section-number">MÓDULO 03</span>
+    <h2>Punteros — la clave de todo</h2>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">📍</span>¿Qué es un puntero?</h3>
+    <p>Un puntero es una variable que guarda <strong>una dirección de memoria</strong>. En lugar de guardar el dato directamente, guarda <em>dónde</em> está el dato.</p>
+    <div class="analogy">
+      <strong>Analogía perfecta</strong>
+      En vez de fotocopiar un documento de 500 páginas para dárselo a un colega, le das su <strong>ubicación</strong>: "está en el archivero 3, cajón B, carpeta roja". Eso es un puntero. Ahorras tiempo, espacio, y ambos ven el mismo documento original.
+    </div>
+    <div class="memory-diag">
+      <div class="mem-cell highlight">
+        <span class="mem-label">x</span>
+        <span class="mem-val">42</span>
+        <span class="mem-addr">0x104</span>
+      </div>
+      <div class="mem-cell accent2">
+        <span class="mem-label">ptr</span>
+        <span class="mem-val">0x104</span>
+        <span class="mem-addr">0x200</span>
+      </div>
+    </div>
+    <p style="font-size:0.85rem;color:var(--muted);margin-top:8px">ptr guarda la dirección de x. Siguiendo ptr llegamos a 42.</p>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">⚡</span>Sintaxis de punteros — los dos operadores</h3>
+    <table>
+      <tr><th>Operador</th><th>Nombre</th><th>Qué hace</th></tr>
+      <tr><td><code>&amp;variable</code></td><td>Address-of</td><td>Da la dirección de memoria de variable</td></tr>
+      <tr><td><code>*puntero</code></td><td>Dereference</td><td>Va a esa dirección y lee/escribe el valor</td></tr>
+    </table>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · punteros_basico.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">int</span>  x   = <span class="num">42</span>;
+    <span class="type">int</span> <span class="op">*</span>ptr = <span class="op">&amp;</span>x;  <span class="cm">// ptr apunta a x</span>
+                    <span class="cm">// Se lee: "ptr es un puntero a int"</span>
+
+    <span class="fn">printf</span>(<span class="str">"x         = %d\n"</span>, x);       <span class="cm">// 42</span>
+    <span class="fn">printf</span>(<span class="str">"dirección = %p\n"</span>, (<span class="type">void</span><span class="op">*</span>)ptr); <span class="cm">// algo como 0x7ffee4</span>
+    <span class="fn">printf</span>(<span class="str">"*ptr      = %d\n"</span>, <span class="op">*</span>ptr);    <span class="cm">// 42 (mismo que x)</span>
+
+    <span class="cm">// Modificar x a través del puntero</span>
+    <span class="op">*</span>ptr = <span class="num">100</span>;
+    <span class="fn">printf</span>(<span class="str">"x ahora   = %d\n"</span>, x);       <span class="cm">// 100 !</span>
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🚀</span>¿Por qué los punteros son cruciales en paralela?</h3>
+    <p>En computación paralela los punteros aparecen en al menos 3 contextos:</p>
+    <ol>
+      <li><strong>Memoria compartida:</strong> Múltiples hilos acceden al mismo array. Ese array se pasa como puntero.</li>
+      <li><strong>Argumentos de hilos:</strong> <code>pthread_create()</code> recibe un <code>void*</code> (puntero genérico) como argumento.</li>
+      <li><strong>Memoria dinámica grande:</strong> Matrices de millones de elementos viven en el heap, accedidas con punteros.</li>
+    </ol>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · puntero_paralela_preview.c</span>
+      </div>
+      <pre><span class="cm">// Anticipación: así pasarás datos a un hilo</span>
+<span class="type">void</span><span class="op">*</span> <span class="fn">trabajo_de_hilo</span>(<span class="type">void</span><span class="op">*</span> arg) {   <span class="cm">// void* = puntero a cualquier tipo</span>
+    <span class="type">int</span><span class="op">*</span> mi_id = (<span class="type">int</span><span class="op">*</span>) arg;          <span class="cm">// Convertimos el puntero genérico</span>
+    <span class="fn">printf</span>(<span class="str">"Soy el hilo %d\n"</span>, <span class="op">*</span>mi_id); <span class="cm">// Leemos el valor</span>
+    <span class="kw">return</span> <span class="num">NULL</span>;
+}</pre>
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🔄</span>Puntero a puntero — cuando necesitas más nivel</h3>
+    <p>A veces necesitas un puntero que apunta a otro puntero. Se declara con <code>**</code>. Aparece en MPI y en matrices 2D dinámicas.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C</span>
+      </div>
+      <pre><span class="type">int</span>   x   = <span class="num">5</span>;
+<span class="type">int</span>  <span class="op">*</span>p   = <span class="op">&amp;</span>x;   <span class="cm">// p apunta a x</span>
+<span class="type">int</span> <span class="op">**</span>pp  = <span class="op">&amp;</span>p;   <span class="cm">// pp apunta a p</span>
+
+<span class="fn">printf</span>(<span class="str">"%d\n"</span>, <span class="op">**</span>pp);  <span class="cm">// 5 (dos desreferencias)</span></pre>
+    </div>
+    <div class="callout info">
+      <strong>Regla simple</strong>
+      El número de <code>*</code> indica cuántas veces tienes que "seguir el puntero" para llegar al dato.
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 4: ARRAYS & STRINGS -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="section-number">MÓDULO 04</span>
+    <h2>Arrays y Strings</h2>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">📊</span>Arrays — bloques contiguos de memoria</h3>
+    <p>Un array es una secuencia de elementos del mismo tipo, almacenados <strong>uno al lado del otro</strong> en memoria. Este detalle importa en paralela: la localidad de datos afecta el rendimiento de caché.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · arrays.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="cm">// Declarar e inicializar</span>
+    <span class="type">int</span> datos[<span class="num">5</span>] = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};
+
+    <span class="cm">// Acceso por índice (empieza en 0)</span>
+    <span class="fn">printf</span>(<span class="str">"%d\n"</span>, datos[<span class="num">0</span>]);  <span class="cm">// 10</span>
+    <span class="fn">printf</span>(<span class="str">"%d\n"</span>, datos[<span class="num">4</span>]);  <span class="cm">// 50</span>
+
+    <span class="cm">// Recorrer con for — el patrón más común en paralela</span>
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i <span class="op">&lt;</span> <span class="num">5</span>; i++) {
+        datos[i] <span class="op">*=</span> <span class="num">2</span>;  <span class="cm">// Duplicar cada elemento</span>
+    }
+
+    <span class="cm">// Array y puntero son casi lo mismo</span>
+    <span class="type">int</span> <span class="op">*</span>ptr = datos;       <span class="cm">// ptr apunta al primer elemento</span>
+    <span class="fn">printf</span>(<span class="str">"%d\n"</span>, ptr[<span class="num">2</span>]);  <span class="cm">// Igual que datos[2]</span>
+    <span class="fn">printf</span>(<span class="str">"%d\n"</span>, <span class="op">*</span>(ptr<span class="op">+</span><span class="num">2</span>)); <span class="cm">// También igual — aritmética de punteros</span>
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div class="callout danger">
+      <strong>Out of bounds — sin red de seguridad</strong>
+      C no verifica que accedas dentro del array. <code>datos[10]</code> en un array de 5 elementos no da error en compilación: lee basura o sobrescribe otra variable. Esto causa bugs muy difíciles de encontrar.
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🔢</span>Arrays dinámicos — el patrón más usado en paralela</h3>
+    <p>Cuando el tamaño del problema no se conoce hasta runtime (muy común en HPC), se pide el array en el heap:</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · array_dinamico.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">int</span> N = <span class="num">1000000</span>;  <span class="cm">// Un millón de elementos</span>
+
+    <span class="cm">// Pedir memoria para N doubles</span>
+    <span class="type">double</span> <span class="op">*</span>vec = (<span class="type">double</span><span class="op">*</span>) <span class="fn">malloc</span>(N <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">double</span>));
+
+    <span class="kw">if</span> (!vec) { <span class="fn">exit</span>(<span class="num">1</span>); }  <span class="cm">// Verificar siempre</span>
+
+    <span class="cm">// Inicializar — candidato perfecto para paralelizar</span>
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i <span class="op">&lt;</span> N; i++) {
+        vec[i] = i <span class="op">*</span> <span class="num">0.001</span>;
+    }
+
+    <span class="fn">printf</span>(<span class="str">"vec[500000] = %f\n"</span>, vec[<span class="num">500000</span>]);
+
+    <span class="fn">free</span>(vec);   <span class="cm">// Siempre liberar</span>
+    vec = <span class="num">NULL</span>; <span class="cm">// Buena práctica: evitar puntero colgante</span>
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🔡</span>Strings — arrays de char con '\0' al final</h3>
+    <p>En C no existe un tipo "string". Un string es simplemente un array de <code>char</code> que termina con el carácter especial <code>'\0'</code> (null terminator).</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · strings.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;string.h&gt;</span>  <span class="cm">// Para strlen, strcpy, etc.</span>
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">char</span> nombre[<span class="num">20</span>] = <span class="str">"OpenMP"</span>;
+    <span class="cm">// En memoria: ['O','p','e','n','M','P','\0', ...]</span>
+
+    <span class="fn">printf</span>(<span class="str">"Hola %s!\n"</span>, nombre);
+    <span class="fn">printf</span>(<span class="str">"Longitud: %zu\n"</span>, <span class="fn">strlen</span>(nombre));  <span class="cm">// 6</span>
+
+    <span class="cm">// Comparar strings (¡no con ==!)</span>
+    <span class="kw">if</span> (<span class="fn">strcmp</span>(nombre, <span class="str">"OpenMP"</span>) == <span class="num">0</span>) {
+        <span class="fn">printf</span>(<span class="str">"Son iguales\n"</span>);
+    }
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div class="callout warning">
+      <strong>Nunca compares strings con ==</strong>
+      <code>str1 == str2</code> compara <em>direcciones</em>, no contenido. Usa siempre <code>strcmp()</code>.
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 5: FUNCIONES -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="section-number">MÓDULO 05</span>
+    <h2>Funciones avanzadas</h2>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">📤</span>Paso por valor vs paso por referencia</h3>
+    <p>Este concepto es <em>fundamental</em> para entender cómo los hilos comparten (o no) datos.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · valor_vs_referencia.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="cm">// Por VALOR: recibe una copia. No modifica el original.</span>
+<span class="type">void</span> <span class="fn">doblar_valor</span>(<span class="type">int</span> x) {
+    x = x <span class="op">*</span> <span class="num">2</span>;  <span class="cm">// Solo modifica la copia local</span>
+}
+
+<span class="cm">// Por REFERENCIA: recibe la dirección. Modifica el original.</span>
+<span class="type">void</span> <span class="fn">doblar_ref</span>(<span class="type">int</span> <span class="op">*</span>x) {
+    <span class="op">*</span>x = (<span class="op">*</span>x) <span class="op">*</span> <span class="num">2</span>;  <span class="cm">// Modifica lo que hay en esa dirección</span>
+}
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">int</span> a = <span class="num">10</span>;
+
+    <span class="fn">doblar_valor</span>(a);
+    <span class="fn">printf</span>(<span class="str">"Por valor: %d\n"</span>, a);   <span class="cm">// 10 — sin cambio</span>
+
+    <span class="fn">doblar_ref</span>(<span class="op">&amp;</span>a);              <span class="cm">// Le pasamos la dirección de a</span>
+    <span class="fn">printf</span>(<span class="str">"Por ref:   %d\n"</span>, a);   <span class="cm">// 20 — modificado!</span>
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div class="analogy">
+      <strong>Conexión con paralela</strong>
+      Cuando múltiples hilos necesitan leer y modificar el mismo array, lo pasan <strong>por referencia</strong> (como puntero). Si cada hilo necesita su propio valor independiente, se pasa <strong>por valor</strong>.
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🎯</span>Funciones que devuelven punteros</h3>
+    <p>Muy común en código HPC: una función crea un array y devuelve el puntero.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+
+<span class="cm">// Crea un vector de N elementos inicializado a cero</span>
+<span class="type">double</span><span class="op">*</span> <span class="fn">crear_vector</span>(<span class="type">int</span> N) {
+    <span class="type">double</span> <span class="op">*</span>v = (<span class="type">double</span><span class="op">*</span>) <span class="fn">calloc</span>(N, <span class="kw">sizeof</span>(<span class="type">double</span>));
+    <span class="cm">// calloc: como malloc pero inicializa a 0</span>
+    <span class="kw">return</span> v;  <span class="cm">// Devuelve el puntero al array del heap</span>
+}
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">double</span> <span class="op">*</span>resultado = <span class="fn">crear_vector</span>(<span class="num">1000</span>);
+    <span class="cm">// usar resultado...</span>
+    <span class="fn">free</span>(resultado);
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div class="callout danger">
+      <strong>Nunca devuelvas un puntero a variable local</strong>
+      Las variables locales viven en el stack y desaparecen al salir de la función. El puntero quedará colgando. Devuelve solo punteros a memoria del heap (<code>malloc</code>/<code>calloc</code>).
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">📌</span>Punteros a funciones — clave para pthreads</h3>
+    <p>En C puedes guardar la dirección de una función en una variable. Así es exactamente como <code>pthread_create()</code> recibe la función que ejecutará cada hilo.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · puntero_funcion.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="type">void</span> <span class="fn">saludar</span>(<span class="type">int</span> n) { <span class="fn">printf</span>(<span class="str">"Hola %d\n"</span>, n); }
+<span class="type">void</span> <span class="fn">despedir</span>(<span class="type">int</span> n) { <span class="fn">printf</span>(<span class="str">"Adiós %d\n"</span>, n); }
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="cm">// Declarar un puntero a función que recibe int y devuelve void</span>
+    <span class="type">void</span> (<span class="op">*</span>accion)(<span class="type">int</span>);
+
+    accion = <span class="fn">saludar</span>;   <span class="cm">// Apunta a saludar</span>
+    <span class="fn">accion</span>(<span class="num">42</span>);          <span class="cm">// Llama a saludar(42)</span>
+
+    accion = <span class="fn">despedir</span>;  <span class="cm">// Ahora apunta a despedir</span>
+    <span class="fn">accion</span>(<span class="num">42</span>);          <span class="cm">// Llama a despedir(42)</span>
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}
+
+<span class="cm">// Así se ve en pthreads:</span>
+<span class="cm">// pthread_create(&hilo, NULL, mi_funcion, arg);</span>
+<span class="cm">//                              ^^^^^^^^^^^</span>
+<span class="cm">//                 puntero a la función que ejecutará el hilo</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 6: STRUCTS -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="section-number">MÓDULO 06</span>
+    <h2>Structs — empaquetar datos</h2>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">📦</span>¿Qué es un struct?</h3>
+    <p>Un struct agrupa variables de distintos tipos bajo un mismo nombre. Es como crear tu propio tipo de dato.</p>
+    <div class="analogy">
+      <strong>Analogía</strong>
+      Un hilo de cómputo necesita saber: su ID, qué porción del array procesar, y el resultado parcial. En lugar de pasar 4 argumentos por separado, los empaquetas en un struct y pasas uno solo.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · struct_hilo.c</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+
+<span class="cm">// Definir el struct (fuera de main, normalmente)</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> {
+    <span class="type">int</span>     id;          <span class="cm">// Identificador del hilo</span>
+    <span class="type">int</span>     inicio;      <span class="cm">// Desde qué índice trabaja</span>
+    <span class="type">int</span>     fin;         <span class="cm">// Hasta qué índice trabaja</span>
+    <span class="type">double</span> <span class="op">*</span>datos;       <span class="cm">// Puntero al array compartido</span>
+    <span class="type">double</span>  resultado;   <span class="cm">// Resultado parcial</span>
+} ArgsHilo;
+
+<span class="cm">// Función que ejecutaría cada hilo</span>
+<span class="type">void</span><span class="op">*</span> <span class="fn">suma_parcial</span>(<span class="type">void</span><span class="op">*</span> arg) {
+    ArgsHilo <span class="op">*</span>a = (ArgsHilo<span class="op">*</span>) arg;  <span class="cm">// Cast de void* a nuestro tipo</span>
+    a<span class="op">-&gt;</span>resultado = <span class="num">0</span>;
+
+    <span class="kw">for</span> (<span class="type">int</span> i = a<span class="op">-&gt;</span>inicio; i <span class="op">&lt;</span> a<span class="op">-&gt;</span>fin; i++) {
+        a<span class="op">-&gt;</span>resultado <span class="op">+=</span> a<span class="op">-&gt;</span>datos[i];  <span class="cm">// a->campo = (*a).campo</span>
+    }
+    <span class="kw">return</span> <span class="num">NULL</span>;
+}
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">int</span> N = <span class="num">12</span>;
+    <span class="type">double</span> datos[<span class="num">12</span>] = {<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>,<span class="num">7</span>,<span class="num">8</span>,<span class="num">9</span>,<span class="num">10</span>,<span class="num">11</span>,<span class="num">12</span>};
+
+    <span class="cm">// Simular 3 hilos cada uno procesando 4 elementos</span>
+    ArgsHilo hilos[<span class="num">3</span>];
+    <span class="kw">for</span> (<span class="type">int</span> t = <span class="num">0</span>; t <span class="op">&lt;</span> <span class="num">3</span>; t++) {
+        hilos[t].id      = t;
+        hilos[t].inicio  = t <span class="op">*</span> <span class="num">4</span>;
+        hilos[t].fin     = (t<span class="op">+</span><span class="num">1</span>) <span class="op">*</span> <span class="num">4</span>;
+        hilos[t].datos   = datos;
+        hilos[t].resultado = <span class="num">0</span>;
+
+        <span class="fn">suma_parcial</span>(<span class="op">&amp;</span>hilos[t]);  <span class="cm">// Por ahora secuencial</span>
+        <span class="fn">printf</span>(<span class="str">"Hilo %d → suma = %.0f\n"</span>, t, hilos[t].resultado);
+    }
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">➡️</span>El operador <code>-&gt;</code></h3>
+    <p>Cuando tienes un puntero a struct, accedes a sus campos con <code>-&gt;</code> en lugar de <code>.</code>:</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C</span>
+      </div>
+      <pre>ArgsHilo  a;   <span class="cm">// Variable struct normal</span>
+ArgsHilo <span class="op">*</span>p = <span class="op">&amp;</span>a;  <span class="cm">// Puntero a struct</span>
+
+a.id = <span class="num">1</span>;      <span class="cm">// Acceso directo con punto</span>
+p<span class="op">-&gt;</span>id = <span class="num">1</span>;     <span class="cm">// Equivalente: (*p).id = 1</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 7: PUENTE A PARALELA -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="section-number">MÓDULO 07</span>
+    <h2>Puente a Computación Paralela</h2>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🌉</span>Los tres modelos principales</h3>
+    <table>
+      <tr><th>Modelo</th><th>Qué es</th><th>Cuándo usarlo</th></tr>
+      <tr><td><strong>OpenMP</strong></td><td>Directivas del compilador</td><td>Un solo nodo, múltiples núcleos. Fácil de aprender.</td></tr>
+      <tr><td><strong>pthreads</strong></td><td>Hilos POSIX a mano</td><td>Control total. Más complejo pero más flexible.</td></tr>
+      <tr><td><strong>MPI</strong></td><td>Paso de mensajes entre procesos</td><td>Múltiples nodos (clústeres). Memoria distribuida.</td></tr>
+    </table>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">⚡</span>OpenMP — un bucle paralelo en una línea</h3>
+    <p>Con lo que ya sabes, esto tiene sentido completo:</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · openmp_intro.c · compilar: gcc -fopenmp</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;omp.h&gt;</span>
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">int</span> N = <span class="num">1000000</span>;
+    <span class="type">double</span> <span class="op">*</span>a = (<span class="type">double</span><span class="op">*</span>) <span class="fn">malloc</span>(N <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">double</span>));
+    <span class="type">double</span> <span class="op">*</span>b = (<span class="type">double</span><span class="op">*</span>) <span class="fn">malloc</span>(N <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">double</span>));
+    <span class="type">double</span> <span class="op">*</span>c = (<span class="type">double</span><span class="op">*</span>) <span class="fn">malloc</span>(N <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">double</span>));
+
+    <span class="cm">// Esta directiva divide el for entre todos los núcleos disponibles</span>
+    <span class="pp">#pragma omp parallel for</span>
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i <span class="op">&lt;</span> N; i++) {
+        c[i] = a[i] <span class="op">+</span> b[i];  <span class="cm">// Cada iteración es independiente → paralelizable</span>
+    }
+
+    <span class="cm">// Suma con reducción — también paralela</span>
+    <span class="type">double</span> suma = <span class="num">0.0</span>;
+    <span class="pp">#pragma omp parallel for reduction(+:suma)</span>
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i <span class="op">&lt;</span> N; i++) {
+        suma <span class="op">+=</span> c[i];
+    }
+
+    <span class="fn">printf</span>(<span class="str">"Suma: %f usando %d hilos\n"</span>,
+           suma, <span class="fn">omp_get_max_threads</span>());
+
+    <span class="fn">free</span>(a); <span class="fn">free</span>(b); <span class="fn">free</span>(c);
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div class="callout success">
+      <strong>¿Ves la conexión?</strong>
+      <code>malloc</code> (módulo 2), punteros (módulo 3), arrays dinámicos (módulo 4), y el bucle for (módulo 1) — todo lo que aprendiste se usa aquí directamente.
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🔧</span>pthreads — control total de hilos</h3>
+    <p>Aquí todos los conceptos del tutorial se juntan. Los structs (módulo 6), punteros a funciones (módulo 5), void* y malloc:</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · pthreads_intro.c · compilar: gcc -lpthread</span>
+      </div>
+      <pre><span class="pp">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;pthread.h&gt;</span>
+
+<span class="kw">typedef</span> <span class="kw">struct</span> {   <span class="cm">// Struct con args para cada hilo</span>
+    <span class="type">int</span>     id;
+    <span class="type">int</span>     inicio, fin;
+    <span class="type">double</span> <span class="op">*</span>datos;
+    <span class="type">double</span>  parcial;
+} Args;
+
+<span class="cm">// Firma obligatoria: void* funcion(void* arg)</span>
+<span class="type">void</span><span class="op">*</span> <span class="fn">trabajar</span>(<span class="type">void</span><span class="op">*</span> arg) {
+    Args <span class="op">*</span>a = (Args<span class="op">*</span>) arg;   <span class="cm">// Cast del puntero genérico</span>
+    a<span class="op">-&gt;</span>parcial = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="type">int</span> i = a<span class="op">-&gt;</span>inicio; i <span class="op">&lt;</span> a<span class="op">-&gt;</span>fin; i++)
+        a<span class="op">-&gt;</span>parcial <span class="op">+=</span> a<span class="op">-&gt;</span>datos[i];
+    <span class="kw">return</span> <span class="num">NULL</span>;
+}
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">int</span> N = <span class="num">12</span>, T = <span class="num">4</span>;  <span class="cm">// N elementos, T hilos</span>
+    <span class="type">double</span> datos[<span class="num">12</span>] = {<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>,<span class="num">7</span>,<span class="num">8</span>,<span class="num">9</span>,<span class="num">10</span>,<span class="num">11</span>,<span class="num">12</span>};
+
+    pthread_t <span class="op">*</span>tids = (<span class="type">pthread_t</span><span class="op">*</span>) <span class="fn">malloc</span>(T <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">pthread_t</span>));
+    Args      <span class="op">*</span>args = (Args<span class="op">*</span>)     <span class="fn">malloc</span>(T <span class="op">*</span> <span class="kw">sizeof</span>(Args));
+
+    <span class="kw">for</span> (<span class="type">int</span> t = <span class="num">0</span>; t <span class="op">&lt;</span> T; t++) {
+        args[t] = (Args){ t, t*(N/T), (t<span class="op">+</span><span class="num">1</span>)*(N/T), datos, <span class="num">0</span> };
+        <span class="fn">pthread_create</span>(<span class="op">&amp;</span>tids[t], <span class="num">NULL</span>, trabajar, <span class="op">&amp;</span>args[t]);
+    }    <span class="cm">//  ↑ dirección del hilo  ↑ función  ↑ args</span>
+
+    <span class="type">double</span> total = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="type">int</span> t = <span class="num">0</span>; t <span class="op">&lt;</span> T; t++) {
+        <span class="fn">pthread_join</span>(tids[t], <span class="num">NULL</span>);  <span class="cm">// Esperar a que termine</span>
+        total <span class="op">+=</span> args[t].parcial;
+    }
+
+    <span class="fn">printf</span>(<span class="str">"Total: %.0f\n"</span>, total);  <span class="cm">// 78</span>
+    <span class="fn">free</span>(tids); <span class="fn">free</span>(args);
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">⚠️</span>Race conditions — el peligro de la memoria compartida</h3>
+    <p>Cuando múltiples hilos leen y escriben la misma variable sin coordinación, el resultado es impredecible:</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">C · race_condition.c</span>
+      </div>
+      <pre><span class="type">int</span> contador = <span class="num">0</span>;  <span class="cm">// Variable compartida</span>
+
+<span class="type">void</span><span class="op">*</span> <span class="fn">incrementar</span>(<span class="type">void</span><span class="op">*</span> arg) {
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i <span class="op">&lt;</span> <span class="num">100000</span>; i++) {
+        contador++;  <span class="cm">// ← RACE CONDITION: no es atómica</span>
+        <span class="cm">// 1. Hilo A lee contador=5</span>
+        <span class="cm">// 2. Hilo B lee contador=5</span>
+        <span class="cm">// 3. Hilo A escribe 6</span>
+        <span class="cm">// 4. Hilo B escribe 6  ← perdió una actualización!</span>
+    }
+    <span class="kw">return</span> <span class="num">NULL</span>;
+}
+
+<span class="cm">// Solución: mutex (mutual exclusion)</span>
+<span class="type">pthread_mutex_t</span> lock = PTHREAD_MUTEX_INITIALIZER;
+
+<span class="type">void</span><span class="op">*</span> <span class="fn">incrementar_seguro</span>(<span class="type">void</span><span class="op">*</span> arg) {
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i <span class="op">&lt;</span> <span class="num">100000</span>; i++) {
+        <span class="fn">pthread_mutex_lock</span>(<span class="op">&amp;</span>lock);    <span class="cm">// Solo un hilo a la vez aquí</span>
+        contador++;
+        <span class="fn">pthread_mutex_unlock</span>(<span class="op">&amp;</span>lock);
+    }
+    <span class="kw">return</span> <span class="num">NULL</span>;
+}</pre>
+    </div>
+    <div class="callout danger">
+      <strong>Regla de oro</strong>
+      Si dos o más hilos acceden a la misma variable y al menos uno escribe, necesitas sincronización (mutex, atomic, barrier, o reducción).
+    </div>
+  </div>
+
+  <div class="lesson">
+    <h3><span class="icon">🗺️</span>Tu roadmap desde aquí</h3>
+    <div class="roadmap">
+      <div class="rm-item">
+        <h4>✅ Este tutorial</h4>
+        <p>Fundamentos de C: tipos, punteros, arrays, funciones, structs. Base sólida.</p>
+      </div>
+      <div class="rm-item">
+        <h4>OpenMP — paralelismo de datos fácil</h4>
+        <p>Aprende las directivas <code>#pragma omp</code>. Primera semana de paralela.</p>
+      </div>
+      <div class="rm-item">
+        <h4>pthreads — control total de hilos</h4>
+        <p>Mutexes, condiciones, barreras. Semana 2-3.</p>
+      </div>
+      <div class="rm-item">
+        <h4>MPI — paralelismo entre nodos</h4>
+        <p>Send/Recv, Broadcast, Reduce, comunicadores. Mes 1-2.</p>
+      </div>
+      <div class="rm-item future">
+        <h4>CUDA / OpenCL — GPUs</h4>
+        <p>Paralelismo masivo con miles de núcleos gráficos.</p>
+      </div>
+      <div class="rm-item future">
+        <h4>OpenMP + MPI (híbrido)</h4>
+        <p>La combinación más usada en HPC real.</p>
+      </div>
+    </div>
+
+    <div class="callout success">
+      <strong>Resumen del tutorial</strong>
+      Con lo que cubriste aquí — tipos de datos, memoria stack/heap, punteros, arrays dinámicos, paso por referencia, structs y punteros a funciones — tienes exactamente las herramientas que necesitas para leer y escribir código de computación paralela real. El resto es aprender las APIs (OpenMP, pthreads, MPI), pero los conceptos de C son los cimientos.
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+</main>
+
+<script>
+  function show(n) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('s' + n).classList.add('active');
+    document.querySelectorAll('.nav-btn')[n].classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
